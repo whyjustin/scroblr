@@ -34,7 +34,6 @@
     "plist": "~0.4.3"
   },
   "dependencies": {
-    "MD5": "~1.2.0",
     "jquery": "~2.1.0",
     "mustache": "~0.8.1"
   }

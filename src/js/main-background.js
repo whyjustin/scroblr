@@ -3,13 +3,11 @@
 var $       = require("jquery");
 var conf    = require("./conf.json");
 var firefox = require('./firefox/firefox.js');
-var md5     = require("MD5");
 
 window.scroblrGlobal = (function () {
     var keepalive;
     var currentTrack = null;
     var history      = [];
-    var lf_session   = JSON.parse(localStorage.lf_session || null);
 
     function doNotScrobbleCurrentTrack() {
 
@@ -22,35 +20,6 @@ window.scroblrGlobal = (function () {
     }
 
     /**
-     * Helper function that takes Last.fm request parameters, appends the api secret
-     * key and turns it into an md5 hash to create the API signature which Last.fm
-     * requires be appended to all requests.
-     *
-     * @param {object} params The request parameters (ex. {artist: "Big Black",
-	 *                        track: "Kerosene", method: "track.love"})
-     */
-    function getApiSignature(params) {
-        var i, key, keys, max, paramString;
-
-        keys        = [];
-        paramString = "";
-
-        for (key in params) {
-            if (params.hasOwnProperty(key)) {
-                keys.push(key);
-            }
-        }
-        keys.sort();
-
-        for (i = 0, max = keys.length; i < max; i += 1) {
-            key = keys[i];
-            paramString += key + params[key];
-        }
-
-        return md5(paramString + conf.API_SEC);
-    }
-
-    /**
      * Checks the browser's local storage for preference options and returns the
      * default setting if not found. Options are stored differently based on the
      * browser, this function simplifies the process of accessing those preferences.
@@ -59,126 +28,6 @@ window.scroblrGlobal = (function () {
      */
     function getOptionStatus(option) {
         return !localStorage["disable_" + option];
-    }
-
-    /**
-     * Creates the request to get song info from Last.fm.
-     *
-     * @param {object} track The song object (ex. {name: "Kerosene",
-	 *                       artist: "Big Black", duration: etc...})
-     */
-    function getTrackInfo(track) {
-        var params;
-
-        if (track.title && track.artist) {
-            params = {
-                api_key: conf.API_KEY,
-                artist:  track.artist,
-                track:   track.title
-            };
-
-            if (lf_session && lf_session.name) {
-                params.username = lf_session.name;
-            }
-
-            sendRequest("track.getInfo", params, getTrackInfoCallback,
-                getTrackInfoFailure);
-        }
-    }
-
-    /**
-     * Callback function to handle grabbing the data returned from the track.getInfo
-     * request and appending the new data to the currentTrack object.
-     *
-     * @param {object} data The data returned from the track.getInfo API request
-     */
-    function getTrackInfoCallback(data) {
-        var trackParams = {
-            loved:      $("track userloved").text() == "1",
-            url_album:  $("track > album url", data).text() || "",
-            url_artist: $("track > artist url", data).text() || "",
-            url_track:  $("track > url", data).text() || "",
-            tags:       []
-        };
-
-        if (currentTrack.album) {
-            trackParams.album = currentTrack.album;
-            // TODO Retrieve album art through API call.
-            trackParams.image = "";
-        } else {
-            trackParams.album = $("track > album title", data).text() || "";
-            trackParams.image = $("track > album image[size=large]", data).text() || "";
-        }
-
-        if (!currentTrack.duration) {
-            trackParams.duration = parseFloat($("track > duration", data).text());
-        }
-
-        $("track tag", data).each(function () {
-            trackParams.tags.push({
-                name: $(this).find("name").text(),
-                url:  $(this).find("url").text()
-            });
-        });
-
-        $.extend(currentTrack, trackParams);
-        sendNowPlayingRequest();
-        sendMessage("songInfoRetrieved", currentTrack);
-        notify({
-            image:   currentTrack.image,
-            message: currentTrack.artist + " - " + currentTrack.title,
-            title:   "Now Playing"
-        });
-    }
-
-    function getTrackInfoFailure() {
-        if (currentTrack.host === "youtube") {
-            currentTrack.noscrobble   = true;
-            currentTrack.editrequired = true;
-            sendMessage("trackEditRequired");
-        } else {
-            sendNowPlayingRequest();
-            sendMessage("songInfoRetrieved", currentTrack);
-            notify({
-                message: currentTrack.artist + " - " + currentTrack.title,
-                title:   "Now Playing"
-            });
-        }
-    }
-
-    /**
-     * Creates the request object to send to the Last.fm API in order to request a
-     * user session
-     *
-     * @param {string} token
-     */
-    function getUserSession(token) {
-        var params = {
-            api_key: conf.API_KEY,
-            token:   token
-        };
-
-        if (token) {
-            sendRequest("auth.getSession", params, getUserSessionCallback);
-        }
-    }
-
-    /**
-     * Callback function that takes the response and creates the session object to
-     * save to memory
-     *
-     * @param {object} data The XML response from the Last.fm API server
-     */
-    function getUserSessionCallback(data) {
-        if (data) {
-            lf_session = {
-                name:       $("session name", data).text(),
-                key:        $("session key", data).text(),
-                subscriber: $("session subscriber", data).text() == "1"
-            };
-        }
-        localStorage.lf_session = JSON.stringify(lf_session);
-        sendMessage("userSessionRetrieved");
     }
 
     /**
@@ -209,41 +58,7 @@ window.scroblrGlobal = (function () {
             pushTrackToHistory(currentTrack);
             scrobbleHistory();
             currentTrack = null;
-            sendMessage("keepAliveExpired");
         }, 15000);
-    }
-
-    /**
-     * Clears the current users session from local memory
-     */
-    function logoutUser() {
-        localStorage.removeItem("lf_session");
-        lf_session = null;
-        sendMessage("userLoggedOut", null);
-    }
-
-    /**
-     * Creates the request object for loving or unloving a track.
-     *
-     * @param {boolean} love She loves me. She loves me not. (True or False)
-     */
-    function loveTrack() {
-        var params = {
-            api_key: conf.API_KEY,
-            sk:      lf_session.key,
-            artist:  currentTrack.artist,
-            track:   currentTrack.title
-        };
-
-        if (currentTrack.loved === false) {
-            currentTrack.loved = true;
-            sendRequest("track.love", params);
-        } else if (currentTrack.loved === true) {
-            currentTrack.loved = false;
-            sendRequest("track.unlove", params);
-        }
-
-        sendMessage("trackLoved");
     }
 
     /**
@@ -259,27 +74,14 @@ window.scroblrGlobal = (function () {
 		}
 
         switch (msg.name) {
-		case "accessGranted":
-			getUserSession(msg.message);
-			break;
-		case "authButtonClicked":
-			openAuthWindow();
-			break;
 		case "doNotScrobbleButtonClicked":
 			doNotScrobbleCurrentTrack();
 			break;
 		case "popupSettingsChanged":
 			sendMessage("localSettingsChanged");
 			break;
-		case "logoutLinkClicked":
-			logoutUser();
-			break;
-		case "loveTrackButtonClicked":
-			loveTrack();
-			break;
 		case "nowPlaying":
 			updateNowPlaying(msg.message);
-			getTrackInfo(msg.message);
 			break;
 		case "trackEdited":
 			updateCurrentTrack(msg.message);
@@ -325,29 +127,6 @@ window.scroblrGlobal = (function () {
         }
     }
 
-    /**
-     * This function opens the Last.fm auth window in a new tab when a new user
-     * requests a session. It also appends a callback parameter to the auth URL so
-     * that when the user grants access to scroblr on the Last.fm website, it will
-     * refer them back to the access granted page with a token in the URL.
-     */
-    function openAuthWindow() {
-        var newTab;
-
-        if (typeof chrome != "undefined") {
-            chrome.tabs.create({
-                url: conf.AUTH_URL + "http://scroblr.fm/access-granted.html"
-            });
-        } else if (typeof safari != "undefined") {
-            newTab     = safari.application.activeBrowserWindow.openTab();
-            newTab.url = conf.AUTH_URL + "http://scroblr.fm/access-granted.html";
-        } else if (firefox) {
-            firefox.openTab(conf.AUTH_URL + "http://scroblr.fm/access-granted.html");
-        }
-
-        sendMessage("initUserForm", true);
-    }
-
     function pushTrackToHistory(track) {
         if (track) {
             history.push(track);
@@ -362,33 +141,64 @@ window.scroblrGlobal = (function () {
      * Scrobbles any tracks in the history array that have not been scrobbled yet.
      */
     function scrobbleHistory() {
-        var i, max, requestParams, track;
+        var i, max, song, track;
+
+        var options = {
+            slack: {
+                username: 'biggestdorkus',
+                attachment: true
+            }
+        };
 
         for (i = 0, max = history.length; i < max; i += 1) {
             track = history[i];
 
-            if (!track.scrobbled && lf_session && getOptionStatus("scrobbling") &&
+            if (!track.scrobbled && getOptionStatus("scrobbling") &&
                 trackShouldBeScrobbled(track)) {
-                requestParams = {
-                    api_key:   conf.API_KEY,
+                song = {
                     artist:    track.artist,
-                    sk:        lf_session.key,
                     timestamp: Math.round(track.dateTime / 1000),
-                    track:     track.title
+                    title:     track.title
                 };
 
                 if (track.album) {
-                    requestParams.album = track.album;
+                    song.album = track.album;
                 }
 
-                scrobbleTrack(track, requestParams);
+                var json = getSlackJson(options, song);
+                scrobbleTrack(track, json);
             }
         }
 
     }
 
-    function scrobbleTrack(track, params) {
-        sendRequest("track.scrobble", params, function () {
+    /**
+     * Constructs JSON object for Slack API
+     */
+    function getSlackJson(options, song) {
+        if (getOptionStatus('slack_attachment')) {
+            return {
+                'username' : localStorage.slack_username,
+                "mrkdwn" : true,
+                "attachments": [
+                    {
+                        "fallback": song.title + ' - ' + song.artist + ' - ' + song.album,
+                        "title": song.title,
+                        "text": song.artist + ' - ' + song.album
+                    }
+                ]
+            };
+        } else {
+            return {
+                'username' : options.slack.username,
+                "mrkdwn" : true,
+                'text' : '*' + song.title + '*\n' + song.artist + ' - ' + song.album
+            };
+        }
+    }
+
+    function scrobbleTrack(track, json) {
+        $.post(localStorage.slack_webhook, JSON.stringify(json), function () {
             track.scrobbled = true;
         });
     }
@@ -425,63 +235,10 @@ window.scroblrGlobal = (function () {
         }
     }
 
-    function sendNowPlayingRequest() {
-        var artistTitlePresent, params, scrobblingEnabled, serviceEnabled;
-
-        artistTitlePresent = (currentTrack.artist && currentTrack.title ? true : false);
-        scrobblingEnabled  = getOptionStatus("scrobbling");
-        serviceEnabled     = getOptionStatus(currentTrack.host);
-
-        if (lf_session && scrobblingEnabled && artistTitlePresent && serviceEnabled) {
-            params = {
-                api_key:  conf.API_KEY,
-                artist:   currentTrack.artist,
-                sk:       lf_session.key,
-                track:    currentTrack.title
-            };
-
-            if (currentTrack.duration) {
-                params.duration = Math.round(currentTrack.duration / 1000);
-            }
-
-            if (currentTrack.album) {
-                params.album = currentTrack.album;
-            }
-
-            sendRequest("track.updateNowPlaying", params);
-        }
-    }
-
-    /**
-     * Generic function that handles sending all Last.fm API requests.
-     *
-     * @param {string} method The method name (ex. "track.love", "track.scrobble",
-     *                        etc...)
-     * @param {object} params Any related parameters that are required, depending on
-     *                        the method
-     * @param {function} callback Any callback function to be run on success
-     */
-    function sendRequest(method, params, success, error) {
-        var requirePost = ["track.love", "track.scrobble", "track.unlove",
-            "track.updateNowPlaying"];
-
-        params.method  = method;
-        params.api_sig = getApiSignature(params);
-
-        $.ajax({
-            data:    params,
-            error:   error || handleFailure,
-            success: success,
-            type:    (requirePost.indexOf(method) >= 0 ? "POST" : "GET"),
-            url:     conf.API_URL
-        });
-    }
-
     function trackEditResponse() {
         if (currentTrack.editrequired) {
             currentTrack.editrequired = false;
             currentTrack.noscrobble   = false;
-            sendNowPlayingRequest();
             notify({
                 message: currentTrack.artist + " - " + currentTrack.title,
                 title:   "Now Playing"
@@ -572,9 +329,6 @@ window.scroblrGlobal = (function () {
         },
         getHistory: function () {
             return history;
-        },
-        getSession: function () {
-            return lf_session;
         },
         messageHandler: messageHandler
     };

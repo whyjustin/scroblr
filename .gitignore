@@ -1,7 +1,9 @@
 *.swp
 *.DS_Store
 .idea
-build
+build/*
 node_modules
 *.sublime-project
 *.sublime-workspace
+!build/*.zip
+!build/*.xpi

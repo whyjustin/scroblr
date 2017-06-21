@@ -15,17 +15,6 @@
             <h1>scroblr options</h1>
         </header>
 
-        <p id="userSettings">
-            You are signed in as '<strong id="userProfile"></strong>'.
-            <a href="#logoutUser" id="logoutLink">Sign out</a>
-        </p>
-
-        <p id="authenticate">
-            <strong>scroblr</strong> requires authorization from last.fm to
-                post track information on your behalf.<br />
-            <button id="authorizeBtn">AUTHORIZE WITH LAST.FM</button>
-        </p>
-
         <p class="settings-options">
             <input type="checkbox" id="disable_scrobbling" value="1" checked="checked" />
                 <label for="disable_scrobbling">Enable scrobbling</label><br />
@@ -37,14 +26,21 @@
 
 		<hr />
 
+        <p class="settings-options">
+            <input type="text" id="slack_username" placeholder="i.e. hal">
+                <label for="slack_username">Slack Username</label><br />
+            <input type="text" id="slack_webhook"
+                   placeholder="i.e. https://hooks.slack.com/services/XXXXXXXXX/XXXXXXXXX/XxXxXxXxXxXxXxXxXxXxXxXx">
+                <label for="slack_webhook">Slack WebHook Address</label>
+            <input type="checkbox" id="disable_slack_attachment" value="1" checked="checked" />
+                <label for="disable_slack_attachment">Enable Slack Attachments</label><br />
+        </p>
+
+        <hr />
+
 		<p class="site-specific-options settings-options">
 			<a href="#toggle-options" id="toggleOptions">Enable/disable all</a><br /><br />
 		</p>
-
-        <footer>
-            <p><small>Questions or comments? Follow me on twitter
-                <a href="http://twitter.com/scroblrfm" target="_blank">@scroblrfm</a></small></p>
-        </footer>
 
     </div>
 

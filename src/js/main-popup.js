@@ -18,11 +18,6 @@ window.scroblrView = (function () {
     }
 
     function attachBehaviors () {
-        $body.on("click", "#authorizeBtn", function (e) {
-            e.preventDefault();
-            sendMessage("authButtonClicked");
-        });
-
         $body.on("click", ".goto-section", function (e) {
             e.preventDefault();
             displaySection($(this).attr("href").slice(1));
@@ -36,16 +31,6 @@ window.scroblrView = (function () {
         $body.on("click", "#doNotScrobbleBtn", function (e) {
             e.preventDefault();
             sendMessage("doNotScrobbleButtonClicked");
-        });
-
-        $body.on("click", "#loveTrackBtn", function (e) {
-            e.preventDefault();
-            sendMessage("loveTrackButtonClicked");
-        });
-
-        $body.on("click", "#logoutLink", function (e) {
-            e.preventDefault();
-            sendMessage("logoutLinkClicked");
         });
 
         $body.on("click", "#submitTrackEditBtn", function (e) {
@@ -122,11 +107,8 @@ window.scroblrView = (function () {
                 }, 500);
             }
             break;
-        case "keepAliveExpired": // intentional fall-through
         case "trackEditRequired":
         case "trackEditSaved":
-        case "userLoggedOut":
-        case "userSessionRetrieved":
             showStartScreen();
             break;
         case "popover":
@@ -154,9 +136,8 @@ window.scroblrView = (function () {
     }
 
     function populateSettingsOptions() {
-        var i, max, options, session;
+        var i, max, options;
 
-        session = model.scroblrGlobal.getSession();
         options = [
             "disable_scrobbling",
             "disable_notifications",
@@ -168,11 +149,6 @@ window.scroblrView = (function () {
             if (localStorage[options[i]] === "true") {
                 $("#" + options[i]).prop("checked", false);
             }
-        }
-
-        if (session) {
-            $("#userProfile").text(session.name).attr("href",
-                "http://last.fm/user/" + session.name);
         }
 
         if (firefox) {
@@ -216,16 +192,13 @@ window.scroblrView = (function () {
     }
 
     function showStartScreen() {
-        var session, track;
+        var track;
 
-        session = model.scroblrGlobal.getSession();
         track   = model.scroblrGlobal.getCurrentTrack();
 
         $body.removeClass();
 
-        if (!session) {
-            $body.addClass("show-authenticate");
-        } else if (track && track.editrequired) {
+        if (track && track.editrequired) {
             renderEditTrackForm();
             $body.addClass("show-edit-track");
         } else {

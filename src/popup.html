@@ -9,14 +9,6 @@
 </head>
 <body>
 
-    <section class="authenticate">
-        <p class="description"><strong>scroblr</strong> requires
-            authorization from last.fm to post track information on your
-            behalf.</p>
-        <p class="username-input">
-            <button id="authorizeBtn">AUTHORIZE WITH LAST.FM</button></p>
-    </section>
-
     <section class="now-playing"></section>
     <section class="edit-track"></section>
 
@@ -25,10 +17,6 @@
             Settings
             <a href="#now-playing" class="back-button goto-section">Back</a>
         </header>
-        <p class="settings-user">
-            You are signed in as '<a href="" id="userProfile" class="goto-link user-profile"></a>'.
-            <a href="#logout" id="logoutLink" class="logout-link">Sign out</a>
-        </p>
         <p class="settings-options">
             <input type="checkbox" checked="checked" id="disable_scrobbling" value="0" />
             <label for="disable_scrobbling">Enable scrobbling</label><br />
@@ -106,8 +94,6 @@
                 {{/url_album}}
             </div>
             <ul class="track-actions">
-                <li><a href="#loveTrack" id="loveTrackBtn" class="{{#loved}}track-loved{{/loved}}"
-                        title="Love this track?">Love this track?</a></li>
                 <li><a href="#edit-track" id="editTrackBtn" class="goto-section"
                         title="Edit track information">Edit track</a></li>
                 <li><a href="#doNotScrobble" id="doNotScrobbleBtn"

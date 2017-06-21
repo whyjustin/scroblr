@@ -11,16 +11,6 @@ function getOptionStatus(option) {
 }
 
 function attachBehaviors() {
-    $body.on("click", "#authorizeBtn", function (e) {
-        e.preventDefault();
-        sendMessage("authButtonClicked");
-    });
-
-    $body.on("click", "#logoutLink", function (e) {
-        e.preventDefault();
-        sendMessage("logoutLinkClicked");
-    });
-
     $body.on("click", "#toggleOptions", function (e) {
         e.preventDefault();
         toggleOptions();
@@ -38,10 +28,14 @@ function changeSettingsOption(e) {
 
     var id = $(this).attr("id");
 
-    if (this.checked) {
-        localStorage.removeItem(id);
-    } else {
-        localStorage[id] = "true";
+    if (this.type === 'checkbox') {
+        if (this.checked) {
+            localStorage.removeItem(id);
+        } else {
+            localStorage[id] = "true";
+        }
+    } else if (this.type === 'text') {
+        localStorage[id] = this.value;
     }
 
     sendMessage("localSettingsChanged");
@@ -50,7 +44,6 @@ function changeSettingsOption(e) {
 function initialize() {
     renderSiteOptions();
     attachBehaviors();
-    toggleAuthState();
     populateSettingsOptions();
 }
 
@@ -58,10 +51,6 @@ function messageHandler (msg) {
     switch (msg.name) {
         case "localSettingsChanged":
             populateSettingsOptions();
-            break;
-        case "userLoggedOut":
-        case "userSessionRetrieved": // Intentional fall-through
-            toggleAuthState();
             break;
     }
 }
@@ -71,7 +60,8 @@ function populateSettingsOptions() {
 	var options  = [
         "disable_scrobbling",
         "disable_notifications",
-        "disable_autodismiss"
+        "disable_autodismiss",
+        'disable_slack_attachment'
 	];
 
 	for (key in plugins) {
@@ -88,6 +78,14 @@ function populateSettingsOptions() {
         } else {
             $("#" + options[i]).prop("checked", true);
         }
+    }
+
+    var textOptions = [
+        'slack_username',
+        'slack_webhook'
+    ];
+    for (i = 0, max = textOptions.length; i < max; i += 1) {
+        $('#' + textOptions[i]).val(localStorage[textOptions[i]]);
     }
 }
 
@@ -114,19 +112,6 @@ function sendMessage(name, message) {
         name: name,
         message: message
     });
-}
-
-function toggleAuthState() {
-    var session = model.getSession();
-
-    if (session) {
-        $("#userSettings").show();
-        $("#authenticate").hide();
-        $("#userProfile").text(session.name);
-    } else {
-        $("#userSettings").hide();
-        $("#authenticate").show();
-    }
 }
 
 function toggleOptions() {

@@ -48,7 +48,10 @@ module.exports = function (grunt) {
             dev: {
                 files: {
                     "build/scroblr.chrome/js/bundle-background.js": ["src/js/main-background.js"],
-                    "build/scroblr.chrome/js/bundle-content-script.js": ["src/js/main-content-script.js"],
+                    "build/scroblr.chrome/js/bundle-content-script.js": [
+						"src/js/main-background.js",
+						"src/js/main-content-script.js"
+					],
                     "build/scroblr.chrome/js/bundle-options.js": ["src/js/main-options.js"],
                     "build/scroblr.chrome/js/bundle-popup.js": ["src/js/main-popup.js"],
                     "build/scroblr.safariextension/js/bundle-background.js": ["src/js/main-background.js"],
