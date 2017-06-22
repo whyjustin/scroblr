@@ -71,7 +71,7 @@
     "options_page": "options.html",
     "permissions": [
         "notifications",
-        "http://ws.audioscrobbler.com/2.0/"
+        "*://api.discogs.com/"
     ],
     "web_accessible_resources": [
         "img/scroblr64.png"

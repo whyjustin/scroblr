@@ -6,10 +6,6 @@ var plugins  = require("./plugins");
 var model    = chrome.extension.getBackgroundPage().scroblrGlobal;
 var $body    = $(document.body);
 
-function getOptionStatus(option) {
-    return !localStorage["disable_" + option];
-}
-
 function attachBehaviors() {
     $body.on("click", "#toggleOptions", function (e) {
         e.preventDefault();
@@ -82,7 +78,8 @@ function populateSettingsOptions() {
 
     var textOptions = [
         'slack_username',
-        'slack_webhook'
+        'slack_webhook',
+        'discog_token'
     ];
     for (i = 0, max = textOptions.length; i < max; i += 1) {
         $('#' + textOptions[i]).val(localStorage[textOptions[i]]);
