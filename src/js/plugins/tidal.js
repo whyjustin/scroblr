@@ -7,7 +7,7 @@ var Utils  = require("../modules/Utilities");
 var tidal  = Object.create(Plugin).init("tidal", "Tidal");
 
 tidal.test = function () {
-    return /listen\.tidalhifi\.com/i.test(document.location.hostname);
+    return /listen\.tidal(hifi)?\.com/i.test(document.location.hostname);
 };
 
 tidal.scrape = function () {
@@ -18,7 +18,7 @@ tidal.scrape = function () {
     }
 
     return {
-        artist: $("[data-bind='artist'] [data-bind='name']", $player).text(),
+        artist: $("[data-bind='artist']", $player).text(),
         duration: Utils.calculateDuration($(".progress-bar .progress-duration", $player).text()),
         elapsed: Utils.calculateDuration($(".progress-bar .progress-progress", $player).text()),
         stopped: $(".play-controls .js-play", $player).css("display") !== "none",

@@ -4,6 +4,7 @@ var $       = require("jquery");
 var conf    = require("./conf.json");
 var firefox = require('./firefox/firefox.js');
 var discogs = require('./modules/Discogs');
+var utilities = require('./modules/Utilities');
 
 window.scroblrGlobal = (function () {
     var keepalive;
@@ -170,10 +171,14 @@ window.scroblrGlobal = (function () {
 
     function prepareScrobble(song) {
         if (discogs.supportsDiscog()) {
-            discogs.search({
-                artist: song.artist,
-                release_title: song.album
-            }, function(err, data) {
+            var searchOptions = $.extend({
+                artist: song.artist
+            }, song.album ? {
+                release_title: utilities.stripAlbumQualifiers(song.album)
+            }: {
+                track: song.title
+            });
+            discogs.search(searchOptions, function(err, data) {
                 if (err) {
                     return;
                 }
@@ -211,9 +216,9 @@ window.scroblrGlobal = (function () {
                 "mrkdwn" : true,
                 "attachments": [
                     {
-                        "fallback": song.title + ' - ' + song.artist + ' - ' + song.album,
+                        "fallback": song.title + ' - ' + song.artist + (song.album ? ' - ' + song.album : ''),
                         "title": song.title,
-                        "text": song.artist + ' - ' + song.album,
+                        "text": song.artist + (song.album ? ' - ' + song.album : ''),
                         "thumb_url": song.image
                     }
                 ]
@@ -223,7 +228,7 @@ window.scroblrGlobal = (function () {
                 'username' : options.slack.username,
                 "thumb_url": song.image,
                 "mrkdwn" : true,
-                'text' : '*' + song.title + '*\n' + song.artist + ' - ' + song.album
+                'text' : '*' + song.title + '*\n' + song.artist + (song.album ? ' - ' + song.album : '')
             };
         }
     }
