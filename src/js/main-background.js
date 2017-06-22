@@ -150,6 +150,8 @@ window.scroblrGlobal = (function () {
 
             if (!track.scrobbled && getOptionStatus("scrobbling") &&
                 trackShouldBeScrobbled(track)) {
+
+                track.scrobbled = true;
                 song = {
                     artist:    track.artist,
                     timestamp: Math.round(track.dateTime / 1000),
@@ -160,17 +162,17 @@ window.scroblrGlobal = (function () {
                     song.album = track.album;
                 }
 
-                prepareScrobble(track, song);
+                prepareScrobble(song);
             }
         }
 
     }
 
-    function prepareScrobble(track, song) {
+    function prepareScrobble(song) {
         if (discogs.supportsDiscog()) {
             discogs.search({
-                artist: track.artist,
-                release_title: track.album
+                artist: song.artist,
+                release_title: song.album
             }, function(err, data) {
                 if (err) {
                     return;
@@ -179,14 +181,14 @@ window.scroblrGlobal = (function () {
                     var result = data.results[0];
                     song.image = result.thumb;
                 }
-                scrobble(track, song);
+                scrobble(song);
             });
         } else {
-            scrobble(track, song);
+            scrobble(song);
         }
     }
 
-    function scrobble(track, song) {
+    function scrobble(song) {
         var options = {
             slack: {
                 username: localStorage.slack_username,
@@ -195,7 +197,7 @@ window.scroblrGlobal = (function () {
         };
 
         var json = getSlackJson(options, song);
-        scrobbleTrack(track, json);
+        scrobbleTrack(json);
     }
 
     /**
@@ -226,10 +228,8 @@ window.scroblrGlobal = (function () {
         }
     }
 
-    function scrobbleTrack(track, json) {
-        $.post(localStorage.slack_webhook, JSON.stringify(json), function () {
-            track.scrobbled = true;
-        });
+    function scrobbleTrack(json) {
+        $.post(localStorage.slack_webhook, JSON.stringify(json));
     }
 
     /**
@@ -283,18 +283,18 @@ window.scroblrGlobal = (function () {
      * @private
      */
     function trackShouldBeScrobbled(track) {
-        var artistTitlePresent, greaterThan30s, listenedTo4m, listenedToMoreThanHalf,
+        var artistTitlePresent, greaterThan30s, listenedTo4m, listenedToMoreThanQuarter,
             noDurationWithElapsed, serviceEnabled;
 
         artistTitlePresent     = (track.artist && track.title ? true : false);
         greaterThan30s         = (track.duration > 30000);
         listenedTo4m           = (track.elapsed >= 240000);
-        listenedToMoreThanHalf = (track.elapsed >= track.duration / 2);
+        listenedToMoreThanQuarter = (track.elapsed >= track.duration / 4);
         noDurationWithElapsed  = (!track.duration && track.elapsed > 30000);
         serviceEnabled         = getOptionStatus(track.host);
 
         return serviceEnabled && !track.noscrobble && artistTitlePresent && ((greaterThan30s &&
-            (listenedTo4m || listenedToMoreThanHalf)) || noDurationWithElapsed);
+            (listenedTo4m || listenedToMoreThanQuarter)) || noDurationWithElapsed);
     }
 
     /**
@@ -337,9 +337,6 @@ window.scroblrGlobal = (function () {
             return false;
         }
 
-        pushTrackToHistory(track);
-        keepTrackAlive();
-
         if (!track.artist) {
             track.editrequired = true;
             track.noscrobble   = true;
@@ -347,6 +344,8 @@ window.scroblrGlobal = (function () {
         }
 
         currentTrack = $.extend({}, track);
+        pushTrackToHistory(currentTrack);
+        keepTrackAlive();
     }
 
     initialize();
