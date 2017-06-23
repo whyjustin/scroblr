@@ -7,7 +7,6 @@ var discogs = require('./modules/Discogs');
 var utilities = require('./modules/Utilities');
 
 window.scroblrGlobal = (function () {
-    var keepalive;
     var currentTrack = null;
     var history      = [];
 
@@ -33,14 +32,6 @@ window.scroblrGlobal = (function () {
     }
 
     /**
-     * Handles API request failures. Notice how it doesn't do a goddamn thing, this
-     * should probably be expanded upon...
-     */
-    function handleFailure() {
-        console.log(arguments);
-    }
-
-    /**
      * The initialization function, gets run once on page load (when the browser
      * window opens for the first time, or when scroblr is enabled.)
      */
@@ -54,18 +45,10 @@ window.scroblrGlobal = (function () {
         }
     }
 
-    function keepTrackAlive() {
-        window.clearTimeout(keepalive);
-        keepalive = window.setTimeout(function () {
-            scrobbleHistory();
-            currentTrack = null;
-        }, 15000);
-    }
-
     /**
      * Handles all incoming event messages from other extension resources.
      *
-     * @param {object} msg The message contents (ex. {name: "keepAlive",
+     * @param {object} msg The message contents (ex. {name: "doNotScrobbleButtonClicked",
 	 *                     message: null})
      */
     function messageHandler(msg) {
@@ -136,7 +119,7 @@ window.scroblrGlobal = (function () {
         }
 
         if (history.length > 25) {
-            history.splice(0, 1);
+            history.splice(0, history.length - 25);
         }
     }
 
@@ -309,8 +292,6 @@ window.scroblrGlobal = (function () {
      */
     function updateCurrentTrack(data) {
         if (data.id === currentTrack.id) {
-            keepTrackAlive();
-
             for (var key in data) {
 
                 if (data.hasOwnProperty(key)) {
@@ -337,6 +318,9 @@ window.scroblrGlobal = (function () {
      * @param {object} track
      */
     function updateNowPlaying(track) {
+        if (currentTrack && currentTrack.id === track.id) {
+            return;
+        }
 
         if (track.host === "youtube" && !getOptionStatus("youtube")) {
             return false;
@@ -350,7 +334,6 @@ window.scroblrGlobal = (function () {
 
         currentTrack = $.extend({}, track);
         pushTrackToHistory(currentTrack);
-        keepTrackAlive();
     }
 
     initialize();
