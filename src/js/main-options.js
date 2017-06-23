@@ -57,7 +57,9 @@ function populateSettingsOptions() {
         "disable_scrobbling",
         "disable_notifications",
         "disable_autodismiss",
-        'disable_slack_attachment'
+        'disable_slack',
+        'disable_slack_attachment',
+        'disable_hipchat'
 	];
 
 	for (key in plugins) {
@@ -79,7 +81,10 @@ function populateSettingsOptions() {
     var textOptions = [
         'slack_username',
         'slack_webhook',
-        'discog_token'
+        'discog_token',
+        'hipchat_domain',
+        'hipchat_room',
+        'hipchat_token'
     ];
     for (i = 0, max = textOptions.length; i < max; i += 1) {
         $('#' + textOptions[i]).val(localStorage[textOptions[i]]);

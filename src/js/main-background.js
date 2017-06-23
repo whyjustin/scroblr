@@ -177,6 +177,15 @@ window.scroblrGlobal = (function () {
     }
 
     function scrobble(song) {
+        if (getOptionStatus('slack')) {
+            scrobbleSlack(song);
+        }
+        if (getOptionStatus('hipchat')) {
+            srobbleHipChat(song);
+        }
+    }
+
+    function scrobbleSlack(song) {
         var options = {
             slack: {
                 username: localStorage.slack_username,
@@ -185,7 +194,7 @@ window.scroblrGlobal = (function () {
         };
 
         var json = getSlackJson(options, song);
-        scrobbleTrack(json);
+        scrobbleSlackTrack(json);
     }
 
     /**
@@ -216,8 +225,35 @@ window.scroblrGlobal = (function () {
         }
     }
 
-    function scrobbleTrack(json) {
+    function scrobbleSlackTrack(json) {
         $.post(localStorage.slack_webhook, JSON.stringify(json));
+    }
+
+    function srobbleHipChat(song) {
+        var json = {
+            'message': song.title + ' - ' + song.artist + (song.album ? ' - ' + song.album : ''),
+            'card': {
+                'id': new Date().getTime().toString(),
+                'style': 'application',
+                'format': 'medium',
+                'title': song.title,
+                'description': song.artist + (song.album ? ' - ' + song.album : ''),
+                'icon': {
+                    'url': song.image
+                }
+            }
+        };
+
+      $.ajax({
+        type: 'POST',
+        url: localStorage.hipchat_domain + '/v2/room/' + localStorage.hipchat_room + '/notification',
+        data: JSON.stringify(json),
+        contentType: 'application/json; charset=utf-8',
+        dataType: 'json',
+        headers: {
+          'Authorization': 'Bearer ' + localStorage.hipchat_token
+        }
+      });
     }
 
     /**

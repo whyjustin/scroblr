@@ -27,6 +27,8 @@
 		<hr />
 
         <p class="settings-options">
+            <input type="checkbox" id="disable_slack" value="1" checked="checked" />
+            <label for="disable_slack">Enable Slack</label><br />
             <input type="text" id="slack_username" placeholder="i.e. hal">
                 <label for="slack_username">Slack Username</label><br />
             <input type="text" id="slack_webhook"
@@ -36,6 +38,20 @@
                 <label for="discog_token">Discog Token</label><br />
             <input type="checkbox" id="disable_slack_attachment" value="1" checked="checked" />
                 <label for="disable_slack_attachment">Enable Slack Attachments</label>
+        </p>
+
+        <hr />
+
+        <p class="settings-options">
+            <input type="checkbox" id="disable_hipchat" value="1" checked="checked" />
+            <label for="disable_hipchat">Enable HipChat</label><br />
+            <input type="text" id="hipchat_domain"
+                   placeholder="i.e. https://company.hipchat.com">
+            <label for="hipchat_domain">HipChat Domain</label><br />
+            <input type="text" id="hipchat_room" placeholder="i.e. scrobble">
+            <label for="hipchat_room">HipChat Room</label><br />
+            <input type="text" id="hipchat_token" placeholder="i.e. xxXXXxxxXXXxxxXXXXxxxxXXX">
+            <label for="hipchat_token">HipChat Personal Access Token</label><br />
         </p>
 
         <hr />
