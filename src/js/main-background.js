@@ -237,23 +237,26 @@ window.scroblrGlobal = (function () {
                 'style': 'application',
                 'format': 'medium',
                 'title': song.title,
-                'description': song.artist + (song.album ? ' - ' + song.album : ''),
-                'icon': {
-                    'url': song.image
-                }
+                'description': song.artist + (song.album ? ' - ' + song.album : '')
             }
         };
 
-      $.ajax({
-        type: 'POST',
-        url: localStorage.hipchat_domain + '/v2/room/' + localStorage.hipchat_room + '/notification',
-        data: JSON.stringify(json),
-        contentType: 'application/json; charset=utf-8',
-        dataType: 'json',
-        headers: {
-          'Authorization': 'Bearer ' + localStorage.hipchat_token
+        if (song.image) {
+            json.card.icon = {
+                'url': song.image
+            };
         }
-      });
+
+        $.ajax({
+            type: 'POST',
+            url: localStorage.hipchat_domain + '/v2/room/' + localStorage.hipchat_room + '/notification',
+            data: JSON.stringify(json),
+            contentType: 'application/json; charset=utf-8',
+            dataType: 'json',
+            headers: {
+              'Authorization': 'Bearer ' + localStorage.hipchat_token
+            }
+        });
     }
 
     /**
