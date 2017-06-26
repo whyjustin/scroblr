@@ -34,7 +34,7 @@ module.exports = {
         return seconds * 1000;
     },
     stripAlbumQualifiers: function(album) {
-        var qualifierRegex = / \(Deluxe\)| \(Explicit\)| \(Single\)/g;
+        var qualifierRegex = / \(Deluxe\)| \(Explicit\)| \(Single\)| \(Deluxe Edition\)/g;
         return album.replace(qualifierRegex, '');
     }
 };

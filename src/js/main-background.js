@@ -181,7 +181,7 @@ window.scroblrGlobal = (function () {
             scrobbleSlack(song);
         }
         if (getOptionStatus('hipchat')) {
-            srobbleHipChat(song);
+            scrobbleHipChat(song);
         }
     }
 
@@ -229,7 +229,7 @@ window.scroblrGlobal = (function () {
         $.post(localStorage.slack_webhook, JSON.stringify(json));
     }
 
-    function srobbleHipChat(song) {
+    function scrobbleHipChat(song) {
         var json = {
             'message': song.title + ' - ' + song.artist + (song.album ? ' - ' + song.album : ''),
             'card': {
