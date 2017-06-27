@@ -42,7 +42,7 @@
                 "*://somafm.com/player*",
                 "*://*.songza.com/*",
                 "*://*.soundcloud.com/*",
-                "*://play.spotify.com/*",
+                "*://*.spotify.com/*",
                 "*://*.thedrop.club/*",
                 "*://*.tidalhifi.com/*",
                 "*://*.tidal.com/*",

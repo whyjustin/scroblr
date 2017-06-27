@@ -311,7 +311,7 @@ window.scroblrGlobal = (function () {
      */
     function trackShouldBeScrobbled(track) {
         var artistTitlePresent, greaterThan30s, listenedTo4m, listenedToMoreThanQuarter,
-            noDurationWithElapsed, serviceEnabled;
+            noDurationWithElapsed, serviceEnabled, noTimestampInfo;
 
         artistTitlePresent     = (track.artist && track.title ? true : false);
         greaterThan30s         = (track.duration > 30000);
@@ -319,9 +319,10 @@ window.scroblrGlobal = (function () {
         listenedToMoreThanQuarter = (track.elapsed >= track.duration / 4);
         noDurationWithElapsed  = (!track.duration && track.elapsed > 30000);
         serviceEnabled         = getOptionStatus(track.host);
+        noTimestampInfo        = track.duration === 0;
 
-        return serviceEnabled && !track.noscrobble && artistTitlePresent && ((greaterThan30s &&
-            (listenedTo4m || listenedToMoreThanQuarter)) || noDurationWithElapsed);
+        return serviceEnabled && !track.noscrobble && artistTitlePresent &&
+            ((greaterThan30s && (listenedTo4m || listenedToMoreThanQuarter)) || noDurationWithElapsed || noTimestampInfo);
     }
 
     /**

@@ -8,16 +8,16 @@ var spotify = Object.create(Plugin);
 spotify.init("spotify", "Spotify");
 
 spotify.test = function () {
-    return (/play\.spotify\.com\//i).test(document.location.href);
+    return (/\.spotify\.com\//i).test(document.location.href);
 };
 
 spotify.scrape = function () {
     return {
-        artist:   $('#app-player').contents().find('#track-artist a').first().text(),
+        artist:   $('#app-player').contents().find('#track-artist a').first().text() || $('.track-info__artists').text(),
         duration: Utils.calculateDuration($('#app-player').contents().find('#track-length').first().text() || ""),
         elapsed:  Utils.calculateDuration($('#app-player').contents().find('#track-current').first().text() || ""),
-        title:    $('#app-player').contents().find('#track-name a').first().text(),
-        stopped:  !$('#app-player').contents().find('#play-pause').hasClass("playing")
+        title:    $('#app-player').contents().find('#track-name a').first().text() || $('.track-info__name').text(),
+        stopped: $('.control-button.control-button--circled').attr('title') === 'Play' //!$('#app-player').contents().find('#play-pause').hasClass("playing")
     };
 };
 
